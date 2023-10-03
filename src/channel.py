@@ -1,6 +1,5 @@
 import json
 import os
-import codecs
 
 from googleapiclient.discovery import build
 
@@ -35,6 +34,60 @@ class Channel:
     @property
     def channel_id(self):
         return self.__channel_id
+
+    def __str__(self):
+        """
+        Читабельный вывод класса
+        """
+        return f'{self.title} ({self.url})'
+
+    def __add__(self, other):
+        """
+        Метод сложения для подписчиков каналов
+        """
+        return self.subscriber_count + other.subscriber_count
+
+    def __sub__(self, other):
+        """
+        Разница между подписчиками каналов
+        """
+        return self.subscriber_count - other.subscriber_count
+
+    def __eq__(self, other):
+        """
+        Равенство кол-ва подписчиков каналов
+        """
+        return self.subscriber_count == other.subscriber_count
+
+    def __ne__(self, other):
+        """
+        Неравенство кол-ва подписчиков каналов
+        """
+        return self.subscriber_count != other.subscriber_count
+
+    def __lt__(self, other):
+        """
+        Оператор меньше для подписчиков каналов
+        """
+        return self.subscriber_count < other.subscriber_count
+
+    def __le__(self, other):
+        """
+        Оператор меньше или равно для подписчиков каналов
+        """
+        return self.subscriber_count <= other.subscriber_count
+
+    def __gt__(self, other):
+        """
+        Оператор больше для подписчиков каналов
+        """
+        return self.subscriber_count > other.subscriber_count
+
+    def __ge__(self, other):
+        """
+        Оператор больше или равно для подписчиков каналов
+        """
+        return self.subscriber_count >= other.subscriber_count
 
     def print_info(self) -> None:
         """Выводит в консоль информацию о канале."""
