@@ -2,9 +2,6 @@ import datetime
 import isodate
 
 from src.channel import APIMixin
-from src.channel import Channel
-
-
 
 
 # answer = APIMixin.get_service().playlistItems().list(playlistId='PLv_zOGKKxVph_8g2Mqc3LMhj0M_BfasbC',
@@ -12,24 +9,34 @@ from src.channel import Channel
 #
 # print(answer)
 
+class PlayList(APIMixin):
 
+    def __init__(self, playlist_id: str) -> None:
+        """
+        Инициализация класса вместе с классом миксином из класса chanel
+        """
+        self.__playlist_id = playlist_id
+        self.url = f'https://www.youtube.com/playlist?list={self.__playlist_id}'
+        super().get_service()
+        self.playlist = PlayList.get_service().playlists().list(id=self.__playlist_id, part='snippet', ).execute()
+        self.title = self.playlist['items'][0]['snippet']['title']
+        self.playlist_videos = PlayList.get_service().playlistItems().list(playlistId=self.__playlist_id,
+                                                                           part='snippet, contentDetails',
+                                                                           maxResults=50, ).execute()
+        self.video_ids: list[str] = [video['contentDetails']['videoId'] for video in self.playlist_videos['items']]
 
-class PlayList:
-
-    playlist_videos = Channel.get_service().playlistItems().list(playlistId=playlist_id,
-                                                                 part='contentDetails', maxResults=50).execute()
-    video_ids: list[str] = [video['contentDetails']['videoId'] for video in playlist_videos['items']]
-
-    def __init__(self, playlist_id):
-        self.playlist_id = playlist_id
-        self.title = 'Moscow Python Meetup №81'
-        self.url = 'https://www.youtube.com/playlist?list=' + self.playlist_id
+    @property
+    def playlist_id(self):
+        return self.__playlist_id
 
     @property
     def total_duration(self):
+        """
+        Метод показывающий продолжительность видео
+        """
         add_time = datetime.timedelta(minutes=0)
-        video_response = APIMixin.get_service().videos().list(part='contentDetails,statistics',
-                                                              id=','.join(video_ids)).execute()
+        video_response = PlayList.get_service().videos().list(part='contentDetails,statistics',
+                                                              id=','.join(self.video_ids)).execute()
         for video in video_response['items']:
             iso_8601_duration = video['contentDetails']['duration']
             duration = isodate.parse_duration(iso_8601_duration)
@@ -37,18 +44,18 @@ class PlayList:
 
         return add_time
 
-    @staticmethod
-    def show_best_video():
-
+    def show_best_video(self):
+        """
+        Метод возвращающий лучший ролик по лайкам
+        """
         like: int = 0
-        for video_id in video_ids:
-            video_response = Channel.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
-                                                                 id=video_id
-                                                                 ).execute()
+        for video_id in self.video_ids:
+            video_response = PlayList.get_service().videos().list(part='snippet,statistics,contentDetails,topicDetails',
+                                                                  id=video_id).execute()
             like_count: int = int(video_response['items'][0]['statistics']['likeCount'])
 
             if like < like_count:
-                url_video = 'https://youtu.be/' + video_id
+                url_video = f'https://youtu.be/{video_id}'
                 like = like_count
 
         return url_video
